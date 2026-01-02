@@ -3,7 +3,7 @@
 English | [**한국어**](README.md)
 
 CiteAgent is an AI-powered tool that automatically adds appropriate citations to LaTeX papers being written in Overleaf.
-
+![Example](example.png)
 ## Key Features
 
 - 🤖 **Gemini API** or **Upstage API** support (configurable)
