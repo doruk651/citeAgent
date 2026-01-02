@@ -1,0 +1,17 @@
+#!/bin/bash
+# CiteAgent launcher script
+# Makes it easy to run CiteAgent from anywhere
+
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+VENV_PATH="$SCRIPT_DIR/venv"
+
+# Check if virtual environment exists
+if [ ! -d "$VENV_PATH" ]; then
+    echo "Error: Virtual environment not found!"
+    echo "Please run: python3 -m venv venv && source venv/bin/activate && pip install -r requirements.txt"
+    exit 1
+fi
+
+# Activate virtual environment and run main.py
+source "$VENV_PATH/bin/activate"
+python "$SCRIPT_DIR/main.py" "$@"

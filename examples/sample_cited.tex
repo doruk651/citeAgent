@@ -1,0 +1,43 @@
+\documentclass{article}
+\usepackage{natbib}
+
+\title{Sample Document for CiteAgent Testing}
+\author{Test User}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+
+This is a sample LaTeX document for testing CiteAgent.
+
+\section{Background}
+
+Transformers have revolutionized natural language processing by introducing
+the self-attention mechanism \citep{ham2021elsa}. This architecture has become the foundation
+for many state-of-the-art models in various NLP tasks.
+
+Large language models, while powerful, often suffer from hallucination problems,
+generating factually incorrect or inconsistent information \citep{guan2023mitigating}. This remains one
+of the key challenges in deploying LLMs for real-world applications.
+
+\section{Methods}
+
+Recent work has explored various techniques to mitigate hallucinations,
+including retrieval-augmented generation and fact verification systems \citep{zhang2025hallucination}.
+These approaches aim to ground model outputs in verifiable sources.
+
+\section{Conclusion}
+
+The field of natural language processing continues to evolve rapidly, with
+new architectures and training methods being developed to address current
+limitations.
+
+\bibliographystyle{plainnat}
+\bibliography{references}
+
+\end{document}
+
+<tool_call>[get_bibtex(key="ham2021elsa"),get_bibtex(key="guan2023mitigating"),get_bibtex(key="zhang2025hallucination")]</tool_call>
