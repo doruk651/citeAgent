@@ -31,6 +31,12 @@ class Config:
 
     def _load_from_env(self):
         """Load configuration from environment variables."""
+        # Gemini API key
+        if os.getenv("GEMINI_API_KEY"):
+            if "gemini" not in self.config:
+                self.config["gemini"] = {}
+            self.config["gemini"]["api_key"] = os.getenv("GEMINI_API_KEY")
+
         # Upstage API key
         if os.getenv("UPSTAGE_API_KEY"):
             if "upstage" not in self.config:
@@ -59,6 +65,28 @@ class Config:
 
         return value
 
+    def get_llm_provider(self) -> str:
+        """Get LLM provider (gemini or upstage)."""
+        return self.get("llm.provider", "gemini")
+
+    def get_gemini_api_key(self) -> str:
+        """Get Gemini API key."""
+        api_key = self.get("gemini.api_key", "")
+        if not api_key:
+            raise ValueError(
+                "Gemini API key not found! "
+                "Set it in config.yaml or GEMINI_API_KEY environment variable. "
+                "Get your API key at: https://aistudio.google.com/apikey"
+            )
+        return api_key
+
+    def get_gemini_config(self) -> Dict[str, str]:
+        """Get Gemini configuration."""
+        return {
+            "api_key": self.get_gemini_api_key(),
+            "model": self.get("gemini.model", "gemini-2.0-flash-exp")
+        }
+
     def get_upstage_api_key(self) -> str:
         """Get Upstage API key."""
         api_key = self.get("upstage.api_key", "")
@@ -76,6 +104,18 @@ class Config:
             "base_url": self.get("upstage.base_url", "https://api.upstage.ai/v1"),
             "model": self.get("upstage.model", "solar-pro2")
         }
+
+    def get_llm_config(self) -> Dict[str, Any]:
+        """Get LLM configuration based on provider."""
+        provider = self.get_llm_provider()
+        if provider == "gemini":
+            config = self.get_gemini_config()
+            config["provider"] = "gemini"
+            return config
+        else:
+            config = self.get_upstage_config()
+            config["provider"] = "upstage"
+            return config
 
     def get_chrome_config(self) -> Dict[str, Any]:
         """Get Chrome debug configuration (deprecated, use get_browser_config)."""

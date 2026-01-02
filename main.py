@@ -17,6 +17,7 @@ sys.path.insert(0, str(Path(__file__).parent / "src"))
 from src.config import Config
 from src.citation_agent import CitationAgent
 from src.overleaf_controller import OverleafController
+from src.safari_applescript_controller import SafariAppleScriptController
 
 
 def print_banner():
@@ -42,29 +43,44 @@ def run_interactive_mode(config: Config, overleaf_url: Optional[str] = None):
 
     print("\nInstructions:")
     print("1. Browser will open and navigate to Overleaf")
-    print("2. Select text in the editor that needs citations")
+    print("2. Select text in the editor that needs citations (or type 'all' to process entire file)")
     print("3. Press Enter here to process the selection")
     print("4. Type 'quit' to exit\n")
 
     # Initialize components
-    upstage_config = config.get_upstage_config()
+    llm_config = config.get_llm_config()
     browser_config = config.get_browser_config()
     agent_config = config.get_agent_config()
     semantic_config = config.get_semantic_scholar_config()
 
-    agent = CitationAgent(
-        api_key=upstage_config["api_key"],
-        base_url=upstage_config["base_url"],
-        model=upstage_config["model"],
-        temperature=agent_config["temperature"],
-        semantic_scholar_api_key=semantic_config["api_key"] if semantic_config["api_key"] else None
-    )
+    # Create agent based on provider
+    if llm_config["provider"] == "gemini":
+        agent = CitationAgent(
+            provider="gemini",
+            api_key=llm_config["api_key"],
+            model=llm_config["model"],
+            temperature=agent_config["temperature"],
+            semantic_scholar_api_key=semantic_config["api_key"] if semantic_config["api_key"] else None
+        )
+    else:
+        agent = CitationAgent(
+            provider="upstage",
+            api_key=llm_config["api_key"],
+            base_url=llm_config["base_url"],
+            model=llm_config["model"],
+            temperature=agent_config["temperature"],
+            semantic_scholar_api_key=semantic_config["api_key"] if semantic_config["api_key"] else None
+        )
 
-    controller = OverleafController(
-        browser=browser_config["type"],
-        debug_port=browser_config["debug_port"],
-        overleaf_url=overleaf_url
-    )
+    # Choose controller based on browser type
+    if browser_config["type"].lower() == "safari":
+        controller = SafariAppleScriptController(overleaf_url=overleaf_url)
+    else:
+        controller = OverleafController(
+            browser=browser_config["type"],
+            debug_port=browser_config["debug_port"],
+            overleaf_url=overleaf_url
+        )
 
     # Connect to Overleaf
     if not controller.connect():
@@ -73,20 +89,29 @@ def run_interactive_mode(config: Config, overleaf_url: Optional[str] = None):
 
     try:
         while True:
-            command = input("\n[CiteAgent] Press Enter to process selection (or 'quit'): ").strip()
+            command = input("\n[CiteAgent] Press Enter to process selection, 'all' for entire file, or 'quit': ").strip()
 
             if command.lower() in ['quit', 'exit', 'q']:
                 print("\n[CiteAgent] Goodbye!")
                 break
 
-            # Get selected text
-            selected_text = controller.get_selected_text()
+            # Check if user wants to process entire file
+            if command.lower() in ['all', 'full', 'entire']:
+                selected_text = controller.get_editor_content()
+                if not selected_text or selected_text.strip() == "":
+                    print("[CiteAgent] Could not read file content!")
+                    continue
+                print(f"[CiteAgent] Processing entire file ({len(selected_text)} characters)...")
+            else:
+                # Get selected text
+                selected_text = controller.get_selected_text()
 
-            if not selected_text or selected_text.strip() == "":
-                print("[CiteAgent] No text selected! Please select text in Overleaf editor.")
-                continue
+                if not selected_text or selected_text.strip() == "":
+                    print("[CiteAgent] No text selected! Please select text in Overleaf editor.")
+                    print("[CiteAgent] Or type 'all' to process the entire file.")
+                    continue
+                print(f"[CiteAgent] Processing {len(selected_text)} characters...")
 
-            print(f"\n[CiteAgent] Processing {len(selected_text)} characters...")
             print(f"\n--- Selected Text ---\n{selected_text}\n")
 
             # Process with agent
@@ -104,19 +129,27 @@ def run_interactive_mode(config: Config, overleaf_url: Optional[str] = None):
             response = input("[CiteAgent] Apply changes? (yes/no): ").strip().lower()
 
             if response in ['yes', 'y']:
-                # Replace selected text
-                if controller.replace_selected_text(modified_text):
-                    print("[CiteAgent] ✓ Text updated in editor")
-
-                    # Add to .bib file
-                    if bibtex_entries:
-                        if controller.append_to_bib_file(bibtex_entries):
-                            print("[CiteAgent] ✓ BibTeX entries added to references.bib")
-                        else:
-                            print("[CiteAgent] ⚠ Could not update .bib file automatically")
-                            print("[CiteAgent] Please add these entries manually to your .bib file")
+                # Check if we're processing entire file or selection
+                if command.lower() in ['all', 'full', 'entire']:
+                    # Replace entire file content
+                    if controller.set_editor_content(modified_text, safe_mode=False):
+                        print("[CiteAgent] ✓ File updated in editor")
+                    else:
+                        print("[CiteAgent] ✗ Failed to update file")
                 else:
-                    print("[CiteAgent] ✗ Failed to update text")
+                    # Replace selected text only
+                    if controller.replace_selected_text(modified_text):
+                        print("[CiteAgent] ✓ Text updated in editor")
+                    else:
+                        print("[CiteAgent] ✗ Failed to update text")
+
+                # Add to .bib file
+                if bibtex_entries:
+                    if controller.append_to_bib_file(bibtex_entries):
+                        print("[CiteAgent] ✓ BibTeX entries added to mybib.bib")
+                    else:
+                        print("[CiteAgent] ⚠ Could not update .bib file automatically")
+                        print("[CiteAgent] Please add these entries manually to your .bib file")
             else:
                 print("[CiteAgent] Changes discarded")
 
@@ -142,24 +175,39 @@ def run_full_document_mode(config: Config, output_file: str = None, overleaf_url
         print(f"Overleaf URL: {overleaf_url}\n")
 
     # Initialize components
-    upstage_config = config.get_upstage_config()
+    llm_config = config.get_llm_config()
     browser_config = config.get_browser_config()
     agent_config = config.get_agent_config()
     semantic_config = config.get_semantic_scholar_config()
 
-    agent = CitationAgent(
-        api_key=upstage_config["api_key"],
-        base_url=upstage_config["base_url"],
-        model=upstage_config["model"],
-        temperature=agent_config["temperature"],
-        semantic_scholar_api_key=semantic_config["api_key"] if semantic_config["api_key"] else None
-    )
+    # Create agent based on provider
+    if llm_config["provider"] == "gemini":
+        agent = CitationAgent(
+            provider="gemini",
+            api_key=llm_config["api_key"],
+            model=llm_config["model"],
+            temperature=agent_config["temperature"],
+            semantic_scholar_api_key=semantic_config["api_key"] if semantic_config["api_key"] else None
+        )
+    else:
+        agent = CitationAgent(
+            provider="upstage",
+            api_key=llm_config["api_key"],
+            base_url=llm_config["base_url"],
+            model=llm_config["model"],
+            temperature=agent_config["temperature"],
+            semantic_scholar_api_key=semantic_config["api_key"] if semantic_config["api_key"] else None
+        )
 
-    controller = OverleafController(
-        browser=browser_config["type"],
-        debug_port=browser_config["debug_port"],
-        overleaf_url=overleaf_url
-    )
+    # Choose controller based on browser type
+    if browser_config["type"].lower() == "safari":
+        controller = SafariAppleScriptController(overleaf_url=overleaf_url)
+    else:
+        controller = OverleafController(
+            browser=browser_config["type"],
+            debug_port=browser_config["debug_port"],
+            overleaf_url=overleaf_url
+        )
 
     # Connect to Overleaf
     if not controller.connect():
@@ -229,15 +277,28 @@ def run_text_mode(config: Config, input_file: str):
         content = f.read()
 
     # Initialize agent
-    upstage_config = config.get_upstage_config()
+    llm_config = config.get_llm_config()
     agent_config = config.get_agent_config()
+    semantic_config = config.get_semantic_scholar_config()
 
-    agent = CitationAgent(
-        api_key=upstage_config["api_key"],
-        base_url=upstage_config["base_url"],
-        model=upstage_config["model"],
-        temperature=agent_config["temperature"]
-    )
+    # Create agent based on provider
+    if llm_config["provider"] == "gemini":
+        agent = CitationAgent(
+            provider="gemini",
+            api_key=llm_config["api_key"],
+            model=llm_config["model"],
+            temperature=agent_config["temperature"],
+            semantic_scholar_api_key=semantic_config["api_key"] if semantic_config["api_key"] else None
+        )
+    else:
+        agent = CitationAgent(
+            provider="upstage",
+            api_key=llm_config["api_key"],
+            base_url=llm_config["base_url"],
+            model=llm_config["model"],
+            temperature=agent_config["temperature"],
+            semantic_scholar_api_key=semantic_config["api_key"] if semantic_config["api_key"] else None
+        )
 
     print(f"[CiteAgent] Processing {len(content)} characters...")
 
