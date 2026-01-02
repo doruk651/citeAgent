@@ -136,12 +136,19 @@ overleaf:
 
 ### 준비 단계
 
-1. **Safari에서 Overleaf 열기**
+1. **Safari에서 Overleaf 열기 (필수)**
    - Safari 브라우저 실행
    - Overleaf 프로젝트 열기
    - 편집할 `.tex` 파일 선택
-   - **중요:** Safari의 개발자 메뉴 활성화
-     - Safari > 환경설정 > 고급 > "메뉴 막대에서 개발자용 메뉴 보기" 체크
+   - **⚠️ 중요: CiteAgent 실행 중에는 Safari에서 Overleaf가 계속 열려 있어야 합니다**
+
+   **Safari 개발자 설정 (필수):**
+   - Safari > 환경설정 > 고급 > "메뉴 막대에서 개발자용 메뉴 보기" 체크
+   - Safari > 개발자 메뉴 > 자동화 (Automation) 선택
+   - 다음 **세 가지 옵션 모두 체크**:
+     - ✅ 원격 자동화 허용 (Allow Remote Automation)
+     - ✅ 스마트 검색 필드에서 JavaScript 허용 (Allow JavaScript from Smart Search Field)
+     - ✅ Apple 이벤트에서 JavaScript 허용 (Allow JavaScript from Apple Events)
 
 2. **Conda 환경 활성화**
    ```bash

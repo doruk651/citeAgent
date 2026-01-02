@@ -136,12 +136,19 @@ overleaf:
 
 ### Preparation
 
-1. **Open Overleaf in Safari**
+1. **Open Overleaf in Safari (Required)**
    - Launch Safari browser
    - Open your Overleaf project
    - Select the `.tex` file to edit
-   - **Important:** Enable Safari's developer menu
-     - Safari > Preferences > Advanced > Check "Show Develop menu in menu bar"
+   - **⚠️ Important: Keep Overleaf open in Safari while CiteAgent is running**
+
+   **Safari Developer Settings (Required):**
+   - Safari > Preferences > Advanced > Check "Show Develop menu in menu bar"
+   - Safari > Develop menu > Select "Automation"
+   - **Check ALL three options**:
+     - ✅ Allow Remote Automation
+     - ✅ Allow JavaScript from Smart Search Field
+     - ✅ Allow JavaScript from Apple Events
 
 2. **Activate Conda Environment**
    ```bash
