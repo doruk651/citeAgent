@@ -1,5 +1,7 @@
 # CiteAgent - Overleaf 자동 인용 추가 도구
 
+[**English Version**](README_EN.md) | 한국어
+
 CiteAgent는 Overleaf에서 작성 중인 LaTeX 논문에 자동으로 적절한 인용을 추가해주는 AI 기반 도구입니다.
 
 ## 주요 기능
