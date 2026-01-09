@@ -3,7 +3,7 @@
 [**English Version**](README_EN.md) | 한국어
 
 **News** 
-- [KyuCite](https://chromewebstore.google.com/detail/kyucite-academic-citation/enmmkcophhilimigcanalmlaffihpoca), version of Chrome extension is out!
+- [KyuCite](https://chromewebstore.google.com/detail/kyucite-academic-citation/enmmkcophhilimigcanalmlaffihpoca), version of Chrome extension is out! (2026.01.06)
 
 <br>
 
