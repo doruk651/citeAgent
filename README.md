@@ -2,6 +2,9 @@
 
 [**English Version**](README_EN.md) | 한국어
 
+**News** ![KyuCite](https://chromewebstore.google.com/detail/kyucite-academic-citation/enmmkcophhilimigcanalmlaffihpoca), version of Chrome extension is out!
+
+
 CiteAgent는 Overleaf에서 작성 중인 LaTeX 논문에 자동으로 적절한 인용을 추가해주는 AI 기반 도구입니다.
 ![Example](example.png)
 ## 주요 기능
