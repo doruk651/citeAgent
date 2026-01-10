@@ -1,5 +1,6 @@
 # CiteAgent - Overleaf 자동 인용 추가 도구
 
+
 [**English Version**](README_EN.md) | 한국어
 
 **News** 
@@ -450,4 +451,5 @@ MIT License
 - [Overleaf](https://www.overleaf.com/)
 
 ---
+[![Star History Chart](https://api.star-history.com/svg?repos=KyuDan1/citeAgent&type=Date)](https://star-history.com/KyuDan1/citeAgent&Date)
 
